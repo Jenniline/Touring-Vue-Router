@@ -6,10 +6,17 @@
 <script>
 export default {
   props: ['event'],
+  inject: ['GStore'], // Inject the Global Store
   methods: {
     register() {
-      // Call to API
-      // If registered then redirect to event details
+     // Assuming successful API call to register them
+      this.GStore.flashMessage(() => {
+        'You are successfully registered for ' + this.event.title
+      })
+
+      setTimeout(() => { // After 3 seconds remove it
+        this.GStore.flashMessage = ''
+      }, 3000)
 
       this.$router.push({
         name: 'EventDetails'
@@ -18,3 +25,4 @@ export default {
   }
 }
 </script>
+  
