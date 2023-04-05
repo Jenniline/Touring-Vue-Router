@@ -5,7 +5,7 @@
 
 <script>
 export default {
-  props: ['event'],
+  props: ['event'], 
   inject: ['GStore'],
   methods: {
     register() {

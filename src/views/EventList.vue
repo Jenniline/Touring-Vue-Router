@@ -26,7 +26,7 @@
 <script>
 import EventCard from '@/components/EventCard.vue'
 import EventService from '@/services/EventService.js'
-import { watchEffect } from 'vue'
+import NProgress from 'nprogress' 
 
 export default {
   name: 'EventList',
@@ -40,19 +40,42 @@ export default {
       totalEvents: 0
     }
   },
-  created() {
-    watchEffect(() => {
-      this.events = null
-      EventService.getEvents(2, this.page)
+  beforeRouteEnter(routeTo,routeFrom,next) {
+    NProgress.start()
+      EventService.getEvents(2,parseInt(routeTo.query.page) || 1)
         .then(response => {
-          this.events = response.data
-          this.totalEvents = response.headers['x-total-count']
+          next(comp => { // continue routing and once component is loaded set these values
+            comp.events = response.data
+            comp.totalEvents = response.headers['x-total-count'] //I'm using comp (as in component in the docs you'll see vm)
+          })
+         
         })
         .catch(() => {
-          this.$router.push({ name: 'NetworkError' })
+          next({ name: 'NetworkError' }) // if the API fails, load the NetworkError Page
+        }).finally(() =>{
+          NProgress.done() // whetheror not the API succeeds or fails,finish the progress bar..
         })
-    })
   },
+
+  beforeRouteUpdate(routeTo) {
+    NProgress.start()
+      EventService.getEvents(2, this.page)
+        .then(response => {
+            this.events = response.data
+            this.totalEvents = response.headers['x-total-count'] //I'm using comp (as in component in the docs you'll see vm)
+        })
+        .catch(() => {
+          next({ name: 'NetworkError' }) // if the API fails, load the NetworkError Page
+        }).finally(() =>{
+          NProgress.done() // whetheror not the API succeeds or fails,finish the progress bar..
+        })
+  },
+
+
+
+
+
+
   computed: {
     hasNextPage() {
       var totalPages = Math.ceil(this.totalEvents / 2)
